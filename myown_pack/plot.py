@@ -266,14 +266,17 @@ def histogram_two_in_one(feature_main: str, feature_binary: str, p:str = None, d
     f, ax = plt.subplots(figsize=(6, 4))
     df_1 = df[df[feature_binary] == 1][feature_main]
     df_0 = df[df[feature_binary] == 0][feature_main]
+    # print(feature_main, len(df_1), len(df_0))
+    # print(df_0.describe())
+    # print(df_1.describe())
     # plt.hist(x=df_1, bins=10, color='red', alpha=0.6, normed=True)
     df_0.hist(ax=ax, bins=bins, color='red', alpha=0.6, density=density, label=f'{feature_binary}==0')  # , stacked=True
     df_1.hist(ax=ax, bins=bins, color='green', alpha=0.6, density=density, label=f'{feature_binary}==1')  # , stacked=True
     plt.legend()
     title = f"Гистограмма для {feature_main} по {feature_binary}"
     plt.title(title, {'fontsize': 20})
-    plt.show()
-    # plt.savefig('hist_norm ' + c)
+    # plt.show()
+    plt.savefig('hist_norm ' + feature_main)
     # plt.close()
 
 

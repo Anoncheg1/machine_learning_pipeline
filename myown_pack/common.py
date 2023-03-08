@@ -169,7 +169,7 @@ def impute(df_o: pd.DataFrame, max_iter=7, percent=0.3, exclude: list = None) ->
     return df
 
 
-def save(sp: str, obj:any) -> str:
+def save(sp: str, obj: any) -> str:
     """
     save to .pickle
     :param sp: must be *.pickle
@@ -179,11 +179,11 @@ def save(sp: str, obj:any) -> str:
     pd.to_pickle(obj, sp)
     print()
     if type(obj) == np.ndarray:
-        print('-- ok --', sp, obj.shape)
+        print('-- save --', sp, obj.shape)
     elif type(obj) == pd.DataFrame:
-        print('-- ok --', sp, obj.shape, obj.columns.tolist())
+        print('-- save --', sp, obj.shape, obj.columns.tolist())
     else:
-        print('-- ok --', sp)
+        print('-- save --', sp)
     return sp
 
 
@@ -232,6 +232,8 @@ def impute_v(p, max_iter=7, percent=0.3, exclude: list = None, remove: list = No
 def outliers_numerical(p, d=0.0001, ignore_columns: list = None, target=None):
     # from scipy.stats import skew
     df: pd.DataFrame = pd.read_pickle(p)
+    old_id: pd.Series = df['id']
+
     ignore_columns += ['id']
 
     numerical_columns = df.select_dtypes(exclude=["object"]).columns
@@ -282,6 +284,15 @@ def outliers_numerical(p, d=0.0001, ignore_columns: list = None, target=None):
     # ids: list = pd.read_pickle('id.pickle')
     # print("ids check:", all(df['id'] == ids))
     # -- save ids
+    # check duplicates
+    assert not df['id'].value_counts().gt(1).any()
+
+    # check for new
+    s1 = set(df['id'].tolist())
+    s2 = set(old_id.tolist())
+    assert len(s1) == len(s1.intersection(s2))
+
+    # set(old_id.tolist())  df['id'].value_counts()
     save('id_train.pickle', df['id'].tolist())
 
     print("filtered:", df_deleted)
@@ -452,15 +463,28 @@ def fill_na(p1: str, t1: str, p2: str = None, t2: str = None, id_check1: str = N
 
     """
     df1: pd.DataFrame = pd.read_pickle(p1)
-    df1_i = df1.index
+    print("df.shape", df1.shape)
+    df1_i = df1["id"]
+    print("df1 unique", df1.index.unique().value_counts().sum())
+    print("df1_i.shape", df1_i.shape)
+    print("df1.shape", df1.shape)
     if p2:
         df2: pd.DataFrame = pd.read_pickle(p2)
-        df2_i = df2.index
-        df = pd.concat([df1, df2])
+        df2_i = df2["id"]
+        # assert len(set(df1["id"].tolist()).intersection(set(df2["id"].tolist()))) == 0
+        assert len(set(df1_i.tolist()).intersection(set(df2_i.tolist()))) == 0
+        print("df2 unique", df2.index.unique().value_counts().sum())
+        print("df2_i.shape", df2_i.shape)
+        print("df2.shape", df2.shape)
+        df = pd.concat([df1, df2], ignore_index=True)  # indexes must be different!!!
         assert df.shape[0] == (df1.shape[0] + df2.shape[0])
+        assert df.index.unique().shape[0] == df.shape[0]
+
     else:
         df = df1
 
+    df = df.set_index('id')
+    
     # df['CLIENT_WI_EXPERIENCE']
     # return
 
@@ -527,17 +551,26 @@ def fill_na(p1: str, t1: str, p2: str = None, t2: str = None, id_check1: str = N
     if p2:
         df2 = df.loc[df2_i]
 
+    df1.reset_index(inplace=True)
+    # print(df1.head())
+    # exit()
+    # df1.rename(columns={'Index':'id'})
+    df2.reset_index(inplace=True)
+    # df2.rename(columns={'Index': 'id'})
+
     if id_check1:
         ids: list = pd.read_pickle(id_check1)
-        print("ids check:")
+        print("ids check:", id_check1)
         assert all(df1['id'] == ids)
     if id_check2:
         ids: list = pd.read_pickle(id_check2)
-        print("ids check:")
+        print("ids check:", id_check2)
         assert all(df2['id'] == ids)
 
     # -- save ids
     # save('id.pickle', df['id'].tolist())
+    assert df1.index.unique().shape[0] == df1.shape[0]
+    assert df2.index.unique().shape[0] == df2.shape[0]
     if p2:
         return save(t1, df1), save(t2, df2)
     else:
@@ -616,7 +649,6 @@ def remove_single_unique_values(dataframe: pd.DataFrame) -> (pd.DataFrame, list)
     """
     Drop all the columns that only contain one unique value.
     not optimized for categorical features yet.
-
     """
     cols_to_drop = dataframe.nunique(dropna=False)
     cols_to_drop = cols_to_drop.loc[cols_to_drop.values == 1].index

@@ -6,7 +6,7 @@ from chepelev_pack.common import load
 def explore_sparse_classes(p, min_categories=60, percent=1):
     """ for columns with categories > min_categories
     show how many records in percent"""
-    df: pd.DataFrame = pd.read_pickle(p)
+    df: pd.DataFramec = pd.read_pickle(p)
     print(df.dtypes)
     # categorical only
     for c in df.select_dtypes(include="object").columns:
