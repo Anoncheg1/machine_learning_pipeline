@@ -554,8 +554,8 @@ def hierarchical_clustering(p, distance_threshold=0, i=1):
     # linkage = 'ward'
     #
     # affinity = "manhattan"
-    # affinity='manhattan'
-    affinity = 'euclidean'
+    affinity = 'manhattan'
+    # affinity = 'euclidean'
     # affinity='euclidean'
 
     df.reset_index(drop=True, inplace=True)
