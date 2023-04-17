@@ -6,12 +6,12 @@ import matplotlib.pyplot as plt
 def scatter_hist_mat(x, y, ax, ax_histx, ax_histy):
     """ https://matplotlib.org/stable/gallery/lines_bars_and_markers/scatter_hist.html
     scatterplot with 2 gistograms
-    :param x: 
-    :param y: 
-    :param ax: 
-    :param ax_histx: 
-    :param ax_histy: 
-    :return: 
+    :param x:
+    :param y:
+    :param ax:
+    :param ax_histx:
+    :param ax_histy:
+    :return:
     """
     # no labels
     ax_histx.tick_params(axis="x", labelbottom=False)
@@ -142,7 +142,7 @@ def scatter_hist2d(x, y,
         ax = plt.gca()
 
     h, xe, ye = np.histogram2d(x, y, bins=bins,
-                               range=range, normed=normed,
+                               range=range, # normed=normed,
                                weights=weights)
     # bins = (xe, ye)
     dens = map_hist(x, y, h, bins=(xe, ye))

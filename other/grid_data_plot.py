@@ -16,7 +16,7 @@ def griddata_plot(x, y, title, x_l, y_l, cmap):
     weights = None
     range = None
     h, xe, ye = np.histogram2d(x, y, bins=(bins1, bins2),
-                                   range=range, normed=normed,
+                                   range=range, #normed=normed,
                                    weights=weights)
     from hist_scatter import map_hist
     dens = map_hist(x, y, h, bins=(xe, ye))
@@ -34,7 +34,7 @@ def griddata_plot(x, y, title, x_l, y_l, cmap):
     CS = plt.contourf(xi,yi,zi,15,cmap=cmap)  # plt.cm.cool# plt.cm.gist_rainbow
     plt.colorbar()  # draw colorbar
     # plot data points.
-    plt.scatter(x, y, marker='o', c='b', s=0.2)
+    plt.scatter(x, y, marker='o', c='b', s=3)
     # plt.xlim(-2,2)
     # plt.ylim(-2,2)
     plt.title(title)
@@ -55,4 +55,4 @@ if __name__ == '__main__':
     x = np.hstack((rng.normal(loc=10, scale=2, size=1000), rng.normal(loc=15, scale=2, size=1000)))
     # print(x)
     y = np.hstack((rng.normal(loc=10, scale=2, size=1000), rng.normal(loc=15, scale=2, size=1000)))
-    griddata_plot(x,y)
+    griddata_plot(x,y, 'asd', y,x,plt.cm.binary)
