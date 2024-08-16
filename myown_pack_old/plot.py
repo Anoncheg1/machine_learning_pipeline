@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from myown_pack.common import load
+import seaborn as sns
 
 
 def rename_columns(p_or_df, columns: dict, len=8):
@@ -76,7 +76,7 @@ def make_confusion_matrix(cf,
     title:         Title for the heatmap. Default is None.
 
     '''
-    import seaborn as sns
+
     # CODE TO GENERATE TEXT INSIDE EACH SQUARE
     blanks = ['' for i in range(cf.size)]
 
@@ -251,7 +251,7 @@ def make_confusion_matrix_percent_all(cf,
         plt.title(title)
 
 
-def histogram_two_in_one(p:str, feature_main: str, feature_binary: str, bins=20, density=True, image_save:str=None):
+def histogram_two_in_one(feature_main: str, feature_binary: str, p:str = None, df: pd.DataFrame = None, bins=20, density=True):
     """
     plot two histogram at one for two features
     one of them - binary [0,1]
@@ -260,7 +260,8 @@ def histogram_two_in_one(p:str, feature_main: str, feature_binary: str, bins=20,
     :param feature_binary: [0,1]
     :return:
     """
-    df = load(p)
+    if p is not None:
+        df: pd.DataFrame = pd.read_pickle(p)
 
     f, ax = plt.subplots(figsize=(6, 4))
     df_1 = df[df[feature_binary] == 1][feature_main]
@@ -271,15 +272,12 @@ def histogram_two_in_one(p:str, feature_main: str, feature_binary: str, bins=20,
     plt.legend()
     title = f"Гистограмма для {feature_main} по {feature_binary}"
     plt.title(title, {'fontsize': 20})
-    if image_save:
-        plt.savefig(image_save)
-    else:
-        plt.show()
-    plt.close()
+    plt.show()
+    # plt.savefig('hist_norm ' + c)
+    # plt.close()
 
 
 def plot_grid_of_plots(df, title: str = "grid of plots"):
-    "Histograms for every column at one page"
     import math
     cols = 6
 
@@ -303,28 +301,3 @@ def plot_grid_of_plots(df, title: str = "grid of plots"):
     plt.savefig(title)
     # plt.show()
 
-
-def get_grid_of_plots(columns:int = 12, title: str = "grid of plots"):
-    "return list for grid of subplots"
-    import math
-    cols = np.sqrt(columns)
-    cols = round(cols) + 1 if round(cols) < cols else round(cols)
-
-    # df: pd.DataFrame = pd.read_pickle(p)
-
-    rows = cols
-    fig, ax = plt.subplots(rows, cols, figsize=(19, 10))
-    plt.subplots_adjust(left=0.076, right=0.96, bottom=0.08, top=0.96, wspace=0.30, hspace=0.85)  # hspace = wspace ||
-    axesl = []
-    for i in range(rows):
-        for j in range(cols):
-            n1 = i * cols + j - 1
-            # if n1 > columns-1:
-            #     break
-            axesl.append(ax[i][j])
-    # [x.axis('off') for i, x in enumerate(axesl) if i >= columns]
-    for i, x in enumerate(axesl):
-        print(i)
-        if i >= columns:
-            x.axis('off')
-    return ax, axesl

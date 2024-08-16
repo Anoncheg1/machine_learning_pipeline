@@ -1,0 +1,803 @@
+* create toy
+#+begin_src python :results output :exports both :session s1
+import numpy as np
+import pandas as pd
+from exploring import describe
+# ---------- Toy DataFrame -----------
+# Gaussian distribution N(mu,sigma ^2) - [100]
+np.random.seed(seed=42)
+x = np.random.rand(100)
+sigma = 0.1  # mean
+mu = 0  # standard deviation
+gausian_distr = np.random.normal(mu, scale=sigma, size=x.shape[0])
+
+# numbers 1-100 [100]
+numbers = np.linspace(1, 100, 100).astype(int)
+
+df = pd.DataFrame({"gausian": gausian_distr,
+              "numbers": numbers,
+              "str": ["sta" + str(x//30) for x in numbers],
+              "str_sm": ["stb" + str(int((x % 2 == 0) | (x % 3 == 0))) + str(int(x % 4 == 0)) for x in numbers],
+              "binary": [int(x%10 == 0) for x in numbers]
+                   })
+# describe(df)
+# print(df[7:11].head())
+
+
+np.random.seed(seed=43)
+x = np.random.rand(100)
+sigma = 0.1  # mean
+mu = 0  # standard deviation
+gausian_distr = np.random.normal(mu, scale=sigma, size=x.shape[0])
+
+# numbers 1-100 [100]
+numbers = np.linspace(1, 100, 100).astype(int)
+
+df2 = pd.DataFrame({"gausian": gausian_distr,
+              "numbers": numbers,
+              "str": ["sta" + str(x//30) for x in numbers],
+              "str_sm": ["stb" + str(int((x % 2 == 0) | (x % 3 == 0))) + str(int(x % 4 == 0)) for x in numbers],
+              "binary": [int(x%10 == 0) for x in numbers]
+                   })
+# from exploring import frequency_analysis
+
+# print(df.describe())
+
+# frequency_analysis(df, "binary")
+print(df2)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+     gausian  numbers   str str_sm  binary
+0  -0.002397        1  sta0  stb00       0
+1  -0.096147        2  sta0  stb10       0
+2  -0.009257        3  sta0  stb10       0
+3  -0.022373        4  sta0  stb11       0
+4   0.083289        5  sta0  stb00       0
+..       ...      ...   ...    ...     ...
+95  0.150877       96  sta3  stb11       0
+96  0.101290       97  sta3  stb00       0
+97  0.004305       98  sta3  stb10       0
+98  0.123250       99  sta3  stb10       0
+99 -0.034641      100  sta3  stb11       1
+
+[100 rows x 5 columns]
+#+end_example
+
+* test plot.histogram_two_in_one
+#+begin_src python :results file graphics :file /tmp/a.png  :session s1
+
+from plot import histogram_two_in_one
+histogram_two_in_one(df, feature_main="gausian", feature_binary="binary", image_save='/tmp/a.png')
+
+#+end_src
+
+#+RESULTS:
+[[file:/tmp/a.png]]
+
+* test exploring.frequency_analysis
+#+begin_src python :results output :exports both :session s1
+# #+begin_src python :results file graphics :file ./imgs/a.png  :session s1
+
+from exploring import frequency_analysis
+
+# print(df.describe())
+
+frequency_analysis(df, "binary") #  "/tmp/a.png", title="asd"
+#+end_src
+
+#+RESULTS:
+#+begin_example
+Index(['gausian', 'numbers', 'str', 'str_sm', 'binary'], dtype='object')
+df.shape[0] 100
+0 in target: 90
+1 in target: 10
+NA 0:
+ gausian    0
+numbers    0
+str        0
+str_sm     0
+binary     0
+
+NA 1:
+ gausian    0
+numbers    0
+str        0
+str_sm     0
+binary     0
+
+rows_less_40_and_categorical ['str', 'str_sm']
+other_c ['gausian', 'numbers']
+0
+1
+2
+3
+we get only top 5 records for target 1 and remove 5 records
+we get only top 5 records for target 0 and remove 85 records
+|    gausian |   0 |   1 |   1 of 1,0 |
+|-----------:|----:|----:|-----------:|
+| -0.160418  |   1 |   0 |          0 |
+| -0.132836  |   0 |   1 |          1 |
+| -0.127884  |   0 |   1 |          1 |
+| -0.0880856 |   0 |   1 |          1 |
+| -0.0594307 |   0 |   1 |          1 |
+| -0.046473  |   0 |   1 |          1 |
+|  0.0846539 |   1 |   0 |          0 |
+|  0.0863853 |   1 |   0 |          0 |
+|  0.0871829 |   1 |   0 |          0 |
+|  0.100299  |   1 |   0 |          0 |
+
+we get only top 5 records for target 1 and remove 5 records
+we get only top 5 records for target 0 and remove 85 records
+|   numbers |   0 |   1 |   1 of 1,0 |
+|----------:|----:|----:|-----------:|
+|         1 |   1 |   0 |          0 |
+|        10 |   0 |   1 |          1 |
+|        20 |   0 |   1 |          1 |
+|        30 |   0 |   1 |          1 |
+|        40 |   0 |   1 |          1 |
+|        50 |   0 |   1 |          1 |
+|        71 |   1 |   0 |          0 |
+|        72 |   1 |   0 |          0 |
+|        73 |   1 |   0 |          0 |
+|        75 |   1 |   0 |          0 |
+
+| str   |   0 |   1 |   1 of 1,0 |
+|:------|----:|----:|-----------:|
+| sta0  |  27 |   2 |    0.06897 |
+| sta1  |  27 |   3 |    0.1     |
+| sta2  |  27 |   3 |    0.1     |
+| sta3  |   9 |   2 |    0.18182 |
+
+| str_sm   |   0 |   1 |   1 of 1,0 |
+|:---------|----:|----:|-----------:|
+| stb00    |  33 |   0 |    0       |
+| stb10    |  37 |   5 |    0.11905 |
+| stb11    |  20 |   5 |    0.2     |
+
+|   binary |   0 |   1 |   1 of 1,0 |
+|---------:|----:|----:|-----------:|
+|        0 |  90 |   0 |          0 |
+|        1 |   0 |  10 |          1 |
+
+column: gausian
+column: numbers
+#+end_example
+
+[[file:/tmp/a.png]]
+
+[[file:/tmp/a.png]]
+
+* test plot.get_grid_of_plots
+#+begin_src python :results output :exports both :session s1
+from plot import get_grid_of_plots
+import matplotlib.pyplot as plt
+ax, l = get_grid_of_plots(13)
+print(l[0])
+df['binary'].hist(ax=l[0])
+# l[0].set_title("binary")
+plt.show()
+plt.close()
+#+end_src
+
+#+RESULTS:
+#+begin_example
+0 0
+0 1
+0 2
+0 3
+1 0
+1 1
+1 2
+1 3
+2 0
+2 1
+2 2
+2 3
+3 0
+3 1
+3 2
+3 3
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+13 Axes(0.310531,0.08;0.180408x0.134351)
+14
+14 Axes(0.545061,0.08;0.180408x0.134351)
+15
+15 Axes(0.779592,0.08;0.180408x0.134351)
+Axes(0.076,0.825649;0.180408x0.134351)
+#+end_example
+
+* test common.fill_na
+#+begin_src python :results output :exports both :session s1
+from common import fill_na
+from common import save
+import numpy as np
+# id filed:
+df.reset_index(drop=True, inplace=True)
+df['id'] = df.index
+idc = df.pop('id')
+df.insert(0, 'id', idc)
+save('id_train.pickle', df['id'].tolist())
+# print(df)
+
+# - make na:
+df['str'][3] = np.NaN
+p1 = fill_na(df, 'fill_na_p1.pickle', id_check1='id_train.pickle')
+#+end_src
+
+#+RESULTS:
+#+begin_example
+
+-- ok -- id_train.pickle
+/tmp/babel-PidqcG/python-eJcOc6:25: SettingWithCopyWarning:
+A value is trying to be set on a copy of a slice from a DataFrame
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['str'][3] = np.NaN
+2 unique values columns excluded: set()
+NA count in categorical columns:
+str 1
+str_sm 0
+
+fill na with mode in categorical:
+ str        sta1
+str_sm    stb00
+Name: 0, dtype: object
+
+cast gausian
+ids check:
+
+-- ok -- fill_na_p1.pickle (100, 6) ['id', 'gausian', 'numbers', 'str', 'str_sm', 'binary']
+#+end_example
+
+* test common.split
+#+begin_src python :results output :exports both :session s1
+from common import split
+from common import load
+
+p1, p2 = split(df,"t1.pickle", "t2.pickle", target_col='binary')
+df1 = load(p1)
+df2 = load(p2)
+print(df1.shape)
+print(df2.shape)
+print(df1['binary'].describe())
+print(df2['binary'].describe())
+#+end_src
+
+#+RESULTS:
+#+begin_example
+WARNING:root:id.pickle was not found.
+
+-- ok -- id_train.pickle
+
+-- ok -- id_test.pickle
+
+-- ok -- t1.pickle (80, 5) ['gausian', 'numbers', 'str', 'str_sm', 'binary']
+
+-- ok -- t2.pickle (20, 5) ['gausian', 'numbers', 'str', 'str_sm', 'binary']
+(80, 5)
+(20, 5)
+count    80.000000
+mean      0.100000
+std       0.301893
+min       0.000000
+25%       0.000000
+50%       0.000000
+75%       0.000000
+max       1.000000
+Name: binary, dtype: float64
+count    20.000000
+mean      0.100000
+std       0.307794
+min       0.000000
+25%       0.000000
+50%       0.000000
+75%       0.000000
+max       1.000000
+Name: binary, dtype: float64
+#+end_example
+
+* test TargetEncoder
+#+begin_src python :results output :exports both :session s1
+from sklearn.preprocessing import TargetEncoder
+from sklearn.preprocessing import OrdinalEncoder
+enc_auto = TargetEncoder(shuffle=False)
+enc_auto2 = OrdinalEncoder()
+print(df.to_string())
+X_trans = enc_auto.fit_transform(df[['str','str_sm']], df['binary'])
+X_trans2 = enc_auto2.fit_transform(df[['str','str_sm']], df['binary'])
+X_trans = pd.DataFrame(X_trans).join(pd.DataFrame(X_trans2), rsuffix='_table2')
+print(enc_auto.fit_transform(df[['str']], df['binary']))
+# print("TargetEncoder vs Ordinal encoder for ['str','str_sm']")
+# print(enc_auto.categories_)
+# print(X_trans.to_string())
+#+end_src
+
+#+RESULTS:
+#+begin_example
+     gausian  numbers   str str_sm  binary
+0   0.008705        1  sta0  stb00       0
+1  -0.029901        2  sta0  stb10       0
+2   0.009176        3  sta0  stb10       0
+3  -0.198757        4  sta0  stb11       0
+4  -0.021967        5  sta0  stb00       0
+5   0.035711        6  sta0  stb10       0
+6   0.147789        7  sta0  stb00       0
+7  -0.051827        8  sta0  stb11       0
+8  -0.080849        9  sta0  stb10       0
+9  -0.050176       10  sta0  stb10       1
+10  0.091540       11  sta0  stb00       0
+11  0.032875       12  sta0  stb11       0
+12 -0.052976       13  sta0  stb00       0
+13  0.051327       14  sta0  stb10       0
+14  0.009708       15  sta0  stb10       0
+15  0.096864       16  sta0  stb11       0
+16 -0.070205       17  sta0  stb00       0
+17 -0.032766       18  sta0  stb10       0
+18 -0.039211       19  sta0  stb00       0
+19 -0.146351       20  sta0  stb11       1
+20  0.029612       21  sta0  stb10       0
+21  0.026106       22  sta0  stb10       0
+22  0.000511       23  sta0  stb00       0
+23 -0.023459       24  sta0  stb11       0
+24 -0.141537       25  sta0  stb00       0
+25 -0.042065       26  sta0  stb10       0
+26 -0.034271       27  sta0  stb10       0
+27 -0.080228       28  sta0  stb11       0
+28 -0.016129       29  sta0  stb00       0
+29  0.040405       30  sta1  stb10       1
+30  0.188619       31  sta1  stb00       0
+31  0.017458       32  sta1  stb11       0
+32  0.025755       33  sta1  stb10       0
+33 -0.007445       34  sta1  stb10       0
+34 -0.191877       35  sta1  stb00       0
+35 -0.002651       36  sta1  stb11       0
+36  0.006023       37  sta1  stb00       0
+37  0.246324       38  sta1  stb10       0
+38 -0.019236       39  sta1  stb10       0
+39  0.030155       40  sta1  stb11       1
+40 -0.003471       41  sta1  stb00       0
+41 -0.116868       42  sta1  stb10       0
+42  0.114282       43  sta1  stb00       0
+43  0.075193       44  sta1  stb11       0
+44  0.079103       45  sta1  stb10       0
+45 -0.090939       46  sta1  stb10       0
+46  0.140279       47  sta1  stb00       0
+47 -0.140185       48  sta1  stb11       0
+48  0.058686       49  sta1  stb00       0
+49  0.219046       50  sta1  stb10       1
+50 -0.099054       51  sta1  stb10       0
+51 -0.056630       52  sta1  stb11       0
+52  0.009965       53  sta1  stb00       0
+53 -0.050348       54  sta1  stb10       0
+54 -0.155066       55  sta1  stb00       0
+55  0.006856       56  sta1  stb11       0
+56 -0.106230       57  sta1  stb10       0
+57  0.047359       58  sta1  stb10       0
+58 -0.091942       59  sta1  stb00       0
+59  0.154993       60  sta2  stb11       1
+60 -0.078325       61  sta2  stb00       0
+61 -0.032206       62  sta2  stb10       0
+62  0.081352       63  sta2  stb10       0
+63 -0.123086       64  sta2  stb11       0
+64  0.022746       65  sta2  stb00       0
+65  0.130714       66  sta2  stb10       0
+66 -0.160748       67  sta2  stb00       0
+67  0.018463       68  sta2  stb11       0
+68  0.025988       69  sta2  stb10       0
+69  0.078182       70  sta2  stb10       1
+70 -0.123695       71  sta2  stb00       0
+71 -0.132046       72  sta2  stb11       0
+72  0.052194       73  sta2  stb00       0
+73  0.029698       74  sta2  stb10       0
+74  0.025049       75  sta2  stb10       0
+75  0.034645       76  sta2  stb11       0
+76 -0.068002       77  sta2  stb00       0
+77  0.023225       78  sta2  stb10       0
+78  0.029307       79  sta2  stb00       0
+79 -0.071435       80  sta2  stb11       1
+80  0.186577       81  sta2  stb10       0
+81  0.047383       82  sta2  stb10       0
+82 -0.119130       83  sta2  stb00       0
+83  0.065655       84  sta2  stb11       0
+84 -0.097468       85  sta2  stb00       0
+85  0.078708       86  sta2  stb10       0
+86  0.115860       87  sta2  stb10       0
+87 -0.082068       88  sta2  stb11       0
+88  0.096338       89  sta2  stb00       0
+89  0.041278       90  sta3  stb10       1
+90  0.082206       91  sta3  stb00       0
+91  0.189679       92  sta3  stb11       0
+92 -0.024539       93  sta3  stb10       0
+93 -0.075374       94  sta3  stb10       0
+94 -0.088951       95  sta3  stb00       0
+95 -0.081581       96  sta3  stb11       0
+96 -0.007710       97  sta3  stb00       0
+97  0.034115       98  sta3  stb10       0
+98  0.027669       99  sta3  stb10       0
+99  0.082718      100  sta3  stb11       1
+[[0.        ]
+ [0.        ]
+ [0.        ]
+ [0.        ]
+ [0.        ]
+ [0.        ]
+ [0.        ]
+ [0.        ]
+ [0.        ]
+ [0.        ]
+ [0.        ]
+ [0.        ]
+ [0.        ]
+ [0.        ]
+ [0.        ]
+ [0.        ]
+ [0.        ]
+ [0.        ]
+ [0.        ]
+ [0.        ]
+ [0.1       ]
+ [0.1       ]
+ [0.1       ]
+ [0.1       ]
+ [0.1       ]
+ [0.1       ]
+ [0.1       ]
+ [0.1       ]
+ [0.1       ]
+ [0.05397365]
+ [0.05397365]
+ [0.05397365]
+ [0.05397365]
+ [0.05397365]
+ [0.05397365]
+ [0.05397365]
+ [0.05397365]
+ [0.05397365]
+ [0.05397365]
+ [0.05397365]
+ [0.17112998]
+ [0.17112998]
+ [0.17112998]
+ [0.17112998]
+ [0.17112998]
+ [0.17112998]
+ [0.17112998]
+ [0.17112998]
+ [0.17112998]
+ [0.17112998]
+ [0.17112998]
+ [0.17112998]
+ [0.17112998]
+ [0.17112998]
+ [0.17112998]
+ [0.17112998]
+ [0.17112998]
+ [0.17112998]
+ [0.17112998]
+ [0.06971067]
+ [0.1       ]
+ [0.1       ]
+ [0.1       ]
+ [0.1       ]
+ [0.1       ]
+ [0.1       ]
+ [0.1       ]
+ [0.1       ]
+ [0.1       ]
+ [0.1       ]
+ [0.1       ]
+ [0.1       ]
+ [0.1       ]
+ [0.1       ]
+ [0.1       ]
+ [0.1       ]
+ [0.1       ]
+ [0.1       ]
+ [0.1       ]
+ [0.1       ]
+ [0.14024947]
+ [0.14024947]
+ [0.14024947]
+ [0.14024947]
+ [0.14024947]
+ [0.14024947]
+ [0.14024947]
+ [0.14024947]
+ [0.14024947]
+ [0.1       ]
+ [0.1       ]
+ [0.1       ]
+ [0.1       ]
+ [0.1       ]
+ [0.1       ]
+ [0.1       ]
+ [0.1       ]
+ [0.1       ]
+ [0.1       ]
+ [0.1       ]]
+#+end_example
+
+* test common.OneHotEncoder for two dataframes
+#+begin_src python :results output :exports both :session s1
+from sklearn.preprocessing import OneHotEncoder
+from common import sparse_classes
+from common import values_byfreq
+
+
+encoder: OneHotEncoder = OneHotEncoder(
+    handle_unknown='infrequent_if_exist',
+    sparse_output=False,
+    min_frequency=0.35) # all that have < min_frequency will be as 'others'
+
+print(df['str_sm'].to_numpy())
+print(df['str_sm'].value_counts())
+encoder.fit(df['str_sm'].to_numpy().reshape(-1, 1))
+s = values_byfreq(df['str_sm'], min_freq=0.4)
+print(s)
+
+# print(encoder)
+v = encoder.transform(df['str_sm'].to_numpy().reshape(-1, 1))
+print(v)
+# X_trans = enc_auto.fit_transform(df[['str','str_sm']], df['binary'])
+# print(df[['str']].nunique())
+# s = sparse_classes(df[['str']], min_categories=0, percent=0.9)
+# print(s[['str']].nunique())
+# print(s)
+# enc_auto = enc_auto.fit(df[['str']])
+# # X_trans = enc_auto.fit([['str','str_sm']], df['binary'])
+# df2['str'][0] = 'st10'
+# X_trans = enc_auto.transform(df2[['str']])
+# X_trans2 = enc_auto2.fit_transform(df[['str','str_sm']], df['binary'])
+# X_trans = pd.DataFrame(X_trans).join(pd.DataFrame(X_trans2), rsuffix='_table2')
+# print(pd.DataFrame(X_trans2))
+# enc_auto = enc_auto.transform(df)
+# print(enc_auto)
+# print(enc_auto.categories_)
+# r = enc_auto.transform(df[['str','str_sm']])
+# print(X_trans)
+# print(r[['str']].nunique())
+# print(df[['str','str_sm']][0:10])
+# print(r[0:10])
+
+# df2['str'][0] = 'st10'
+# print(df2['str'][0])
+# r = enc_auto.transform(df2[['str','str_sm']])
+# print(df2[['str','str_sm']][0:10])
+# print(r[0:10])
+#+end_src
+
+
+
+#+RESULTS:
+#+begin_example
+['stb00' 'stb10' 'stb10' 'stb11' 'stb00' 'stb10' 'stb00' 'stb11' 'stb10'
+ 'stb10' 'stb00' 'stb11' 'stb00' 'stb10' 'stb10' 'stb11' 'stb00' 'stb10'
+ 'stb00' 'stb11' 'stb10' 'stb10' 'stb00' 'stb11' 'stb00' 'stb10' 'stb10'
+ 'stb11' 'stb00' 'stb10' 'stb00' 'stb11' 'stb10' 'stb10' 'stb00' 'stb11'
+ 'stb00' 'stb10' 'stb10' 'stb11' 'stb00' 'stb10' 'stb00' 'stb11' 'stb10'
+ 'stb10' 'stb00' 'stb11' 'stb00' 'stb10' 'stb10' 'stb11' 'stb00' 'stb10'
+ 'stb00' 'stb11' 'stb10' 'stb10' 'stb00' 'stb11' 'stb00' 'stb10' 'stb10'
+ 'stb11' 'stb00' 'stb10' 'stb00' 'stb11' 'stb10' 'stb10' 'stb00' 'stb11'
+ 'stb00' 'stb10' 'stb10' 'stb11' 'stb00' 'stb10' 'stb00' 'stb11' 'stb10'
+ 'stb10' 'stb00' 'stb11' 'stb00' 'stb10' 'stb10' 'stb11' 'stb00' 'stb10'
+ 'stb00' 'stb11' 'stb10' 'stb10' 'stb00' 'stb11' 'stb00' 'stb10' 'stb10'
+ 'stb11']
+str_sm
+stb10    42
+stb00    33
+stb11    25
+Name: count, dtype: int64
+vcp_s str_sm
+stb10    0.42
+stb00    0.33
+stb11    0.25
+Name: count, dtype: float64
+(['s', 's'], ['s'])
+[[0. 1.]
+ [1. 0.]
+ [1. 0.]
+ [0. 1.]
+ [0. 1.]
+ [1. 0.]
+ [0. 1.]
+ [0. 1.]
+ [1. 0.]
+ [1. 0.]
+ [0. 1.]
+ [0. 1.]
+ [0. 1.]
+ [1. 0.]
+ [1. 0.]
+ [0. 1.]
+ [0. 1.]
+ [1. 0.]
+ [0. 1.]
+ [0. 1.]
+ [1. 0.]
+ [1. 0.]
+ [0. 1.]
+ [0. 1.]
+ [0. 1.]
+ [1. 0.]
+ [1. 0.]
+ [0. 1.]
+ [0. 1.]
+ [1. 0.]
+ [0. 1.]
+ [0. 1.]
+ [1. 0.]
+ [1. 0.]
+ [0. 1.]
+ [0. 1.]
+ [0. 1.]
+ [1. 0.]
+ [1. 0.]
+ [0. 1.]
+ [0. 1.]
+ [1. 0.]
+ [0. 1.]
+ [0. 1.]
+ [1. 0.]
+ [1. 0.]
+ [0. 1.]
+ [0. 1.]
+ [0. 1.]
+ [1. 0.]
+ [1. 0.]
+ [0. 1.]
+ [0. 1.]
+ [1. 0.]
+ [0. 1.]
+ [0. 1.]
+ [1. 0.]
+ [1. 0.]
+ [0. 1.]
+ [0. 1.]
+ [0. 1.]
+ [1. 0.]
+ [1. 0.]
+ [0. 1.]
+ [0. 1.]
+ [1. 0.]
+ [0. 1.]
+ [0. 1.]
+ [1. 0.]
+ [1. 0.]
+ [0. 1.]
+ [0. 1.]
+ [0. 1.]
+ [1. 0.]
+ [1. 0.]
+ [0. 1.]
+ [0. 1.]
+ [1. 0.]
+ [0. 1.]
+ [0. 1.]
+ [1. 0.]
+ [1. 0.]
+ [0. 1.]
+ [0. 1.]
+ [0. 1.]
+ [1. 0.]
+ [1. 0.]
+ [0. 1.]
+ [0. 1.]
+ [1. 0.]
+ [0. 1.]
+ [0. 1.]
+ [1. 0.]
+ [1. 0.]
+ [0. 1.]
+ [0. 1.]
+ [0. 1.]
+ [1. 0.]
+ [1. 0.]
+ [0. 1.]]
+#+end_example
+* test nan values
+#+begin_src python :results output :exports both :session s1
+import numpy as np
+# df.iloc[0].loc['binary'] = 1
+df.loc[2, 'binary'] = np.NaN
+df.loc[1, 'binary'] = np.NaN
+print(df.isna().sum().sum())
+# print(df.loc[0, 'binary'])
+#+end_src
+
+#+RESULTS:
+: 2
+
+* test common.values_byfreq
+#+begin_src python :results output :exports both :session s1
+from common import values_byfreq
+
+s = values_byfreq(df[['str']], min_freq=0.3)
+print(s)
+#+end_src
+
+#+RESULTS:
+: vcp_s str
+: sta1    0.30
+: sta2    0.30
+: sta0    0.29
+: sta3    0.11
+: Name: count, dtype: float64
+: (['sta1', 'sta2'], ['sta0', 'sta3'])
+
+* test common.encode_categorical_label
+encode
+1) sparse columns
+2) encode column: one-hot, label
+   1. select which one onehot, which label
+   2. encode with percentage or encoder.
+
+train will get column: encoder. and encode approriately
+
+3) train test
+4) encode two
+#+begin_src python :results output :exports both :session s1
+from common import values_byfreq
+from common import encode_categorical_label
+from common import encode_categorical_onehot
+from common import encode_categorical_pipe
+from sklearn.preprocessing import OrdinalEncoder
+# s = values_byfreq(df['str'], min_freq=0.3)
+# print(s)
+# df, label_encoders = encode_categorical_label(
+#     df, label_e_columns,
+#     min_frequency=0.5)
+print(df)
+
+columns: list = ['str', 'str_sm']
+encoder: dir=None
+min_frequency=0.3
+
+dfn = encode_categorical_pipe(df, min_frequency = 0.3)
+print(dfn.to_string())
+#+end_src
+
+#+RESULTS:
+#+begin_example
+     gausian  numbers   str str_sm  binary
+0   0.008705        1  sta0  stb00       0
+1  -0.029901        2  sta0  stb10       0
+2   0.009176        3  sta0  stb10       0
+3  -0.198757        4  sta0  stb11       0
+4  -0.021967        5  sta0  stb00       0
+..       ...      ...   ...    ...     ...
+95 -0.081581       96  sta3  stb11       0
+96 -0.007710       97  sta3  stb00       0
+97  0.034115       98  sta3  stb10       0
+98  0.027669       99  sta3  stb10       0
+99  0.082718      100  sta3  stb11       1
+
+[100 rows x 5 columns]
+#+end_example
+* Plot test: exploring.frequency_analysis
+:PROPERTIES:
+:ARCHIVE_TIME: 2023-10-18 Wed 14:49
+:ARCHIVE_FILE: ~/proj_python/myown_pack/README.org
+:ARCHIVE_CATEGORY: README
+:END:
+#+begin_src python :results file graphics :file /tmp/a.png  :session s1
+from plot import histogram_two_in_one
+frequency_analysis(df, "binary")
+#+end_src
+
+#+RESULTS:
+[[file:/tmp/a.png]]

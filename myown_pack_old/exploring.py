@@ -1,57 +1,12 @@
 import pandas as pd
 import numpy as np
-from myown_pack.common import load
-from myown_pack.plot import rename_columns
-from myown_pack.plot import get_grid_of_plots
-import matplotlib.pyplot as plt
+from chepelev_pack.common import load
 
-
-def describe(p, name = ''):
-    df = load(p)
-    print(f"describe {name}:")
-    print(df.describe().to_string())
-    try:
-        print(df.select_dtypes(exclude=["number"]).astype('object').describe().to_string())
-    except: #noqa
-        pass
-    print(f"{name}.isna().sum():")
-    print(df.isna().sum())
-    print()
-    print("Values counts:")
-    for c, count in df.nunique().items():
-            if df[c].dtype == 'float64' and len(df[c].value_counts()) > 20:
-                continue
-            print(c, df[c].dtype)
-            print(df[c].value_counts().head(5))
-            if len(df[c].value_counts()) > 5:
-                print("others count:", len(df[c].value_counts()) - 5)
-            print()
-
-
-
-def count_fkey(key1, key2):
-    "Allow to expore dependence of two tables by foreign key.  We get "
-    "unique of key1 and compare with all key2."
-
-    un1 = np.unique(key1)
-    # un2 = np.unique(key2)
-    un2 = key2
-    cm = np.in1d(un1, un2, assume_unique=True)
-    print("Count of unique values of the first key and count of values in the second key:")
-    if 'name' in dir(key1):
-        print(f"[{key1.name}]: { un1.size}")
-        print(f"[{key2.name}]: { un2.size}")
-    else:
-        print(f"key1: { un1.size}")
-        print(f"key2: { un2.size}")
-    c = np.unique(cm, return_counts=True)
-    print("True is values of the first key that exist in the second key:")
-    print(pd.DataFrame({'values':c[0], 'count':c[1]}))
 
 def explore_sparse_classes(p, min_categories=60, percent=1):
     """ for columns with categories > min_categories
     show how many records in percent"""
-    df = load(p)
+    df: pd.DataFrame = pd.read_pickle(p)
     print(df.dtypes)
     # categorical only
     for c in df.select_dtypes(include="object").columns:
@@ -186,7 +141,7 @@ def explore_na(p):
 
 
 def explore_columns_and_na(p, fields_dict):
-
+    from chepelev_pack.plot import rename_columns
     df: pd.DataFrame = pd.read_pickle(p)
     # print(df.columns)
     # return
@@ -212,11 +167,7 @@ def explore_columns_and_na(p, fields_dict):
 
 def corr_analysis(p, target:str = None, method="pearson"):
     """
-    output correlation matrix filtered, outputs:
-    - max correlations list: - just max correlation with other feature per column
-    - Имевшие > 0.2 корреляцию на главной диаграмме: -
-    - Главная диаграмма корреляции.: just corr
-    - Значения имевшие > 0.98 корреляцию на главной диаграмме
+
     """
     import seaborn as sns
     from matplotlib import pyplot as plt
@@ -224,7 +175,8 @@ def corr_analysis(p, target:str = None, method="pearson"):
     # rcParams['font.family'] = 'dejavu'
     # rcParams['font.sans-serif'] = ['DejavuSans']
     plt.rc('font', size=6)
-    df = load(p)
+
+    df: pd.DataFrame = pd.read_pickle(p)
 
     # from chepelev_pack.plot import histogram_two_in_one
     # histogram_two_in_one(df.tail(500), 'MBKI_SCORING' , 'МБКИ_исп_пр')
@@ -235,27 +187,26 @@ def corr_analysis(p, target:str = None, method="pearson"):
     # exit(0)
 
     # -- Pearson for continuous features
-    corr = df.corr(method=method)
 
+
+    corr = df.corr(method=method)
     if target:
         print("correlation to target")
         print(corr[target].sort_values().to_string())
         print()
-
     # mask # clear diagonal
     mask = np.zeros_like(corr, int)
     np.fill_diagonal(mask, 1)
     corr.iloc[mask.astype(bool)] = 0
 
-    # -- max correlation plot (old - dont calc abs!)
-    # corr_max = np.nanmax(corr.to_numpy().astype(float), axis=1)
-    # print("max correlations per column:", corr_max)
-    # print()
-    # d = pd.DataFrame({'c':corr_max, 'a':df.columns.to_numpy()}).sort_values(by='c', ascending=False)
+    # -- max correlation plot
+    corr_max = np.nanmax(corr.to_numpy().astype(float), axis=1)
+    print(corr_max)
+    d = pd.DataFrame({'c':corr_max, 'a':df.columns.to_numpy()}).sort_values(by='c', ascending=False)
 
-    # sns.barplot(x='c',y='a',data=d, orient='h')
-    # plt.title("max correlations")
-    # plt.show()
+    sns.barplot(x='c',y='a',data=d, orient='h')
+    plt.title("max correlation")
+    plt.show()
     # -- full correlation plot
     # mask = np.zeros_like(corr)
     # mask[np.triu_indices_from(mask)] = True
@@ -263,33 +214,30 @@ def corr_analysis(p, target:str = None, method="pearson"):
     with sns.axes_style("white"):
         f, ax = plt.subplots(figsize=(15, 15))
         ax = sns.heatmap(corr, square=True, linewidths=.8, cmap="YlGnBu")  # mask=mask,
-        ax.set_title("Главная диаграмма корреляции.")
+        ax.set_title("Главная диаграмма корреляции")
     # plt.savefig('a.png')
-    # -- filter low correlation: (> 0.98) for 1 and ( 0.2 > and < 0.98) for 2
+    # -- (> 0.98) for 1 and ( 0.2 > and < 0.98) for 2
+    # filter low correlation
     lim_max = 0.98
     lim_min = 0.2
     df_too_much = None  # (> 0.98) for 1
     df_h = None  # ( 0.2 > and < 0.98) for 2
-    print("correlation max() per column:")
-    out = {}
     for c in corr.columns:
-        out[c] = max(abs(corr[c].max()), abs(corr[c].min()))
-        # - filter by max, min to df_h
-        if lim_max > abs(corr[c].max()) or lim_min < abs(corr[c].min()):
+        print(c, abs(corr[c].max()), abs(corr[c].min()))
+
+        if lim_min < abs(corr[c].max()) or lim_min < abs(corr[c].min()):
             if df_h is None:
                 df_h = pd.DataFrame(df[c])
             else:
                 df_h[c] = df[c]
             # df.drop(c, 1, inplace=True)
-        # - filter by max to df_too_much
         if abs(corr[c].max()) > lim_max or abs(corr[c].min()) > lim_max:
             if df_too_much is None:
                 df_too_much = pd.DataFrame(df[c])
             else:
                 df_too_much[c] = df[c]
             # df.drop(c, 1, inplace=True)
-    print(pd.DataFrame(out.items()).sort_values(by=1))
-    print()
+
     # mask for cleared corr
     corr = df_h.corr(method=method)
     # mask # clear diagonal
@@ -320,102 +268,84 @@ def corr_analysis(p, target:str = None, method="pearson"):
     # вклад с точки зрения важности параметров для линейной модели.
 
 
-def frequency_analysis(p, target='ander', image_save: str = None, t0=0, t1=1):
-    """ for binary target, you should exclude time columns before use"""
-
+def frequency_analysis(p, target='ander'):
+    """ for binary target"""
+    import matplotlib.pyplot as plt
     df = load(p)
-    df = df.copy()
-    print(df.columns)
-    if 'id' in df.columns:
-        df.drop(columns=['id'], inplace=True)
-    print("df.shape[0]", df.shape[0])
-    df_0 = df[df[target] == t0]
-    df_1 = df[df[target] == t1]
-    print("0 in target:", df_0.shape[0])
-    print("1 in target:", df_1.shape[0])
+    df.drop(columns=['id'], inplace=True)
+    print("Всего:", df.shape[0])
+    df_0 = df[df[target] == 0]
+    df_1 = df[df[target] == 1]
+    df_0.drop(columns=['ander'], inplace=True)
+    df_1.drop(columns=['ander'], inplace=True)
+    print("0", df_0.shape[0])
+    print("1", df_1.shape[0])
     print("NA 0:\n", df_0.isna().sum().to_string())
-    print()
     print("NA 1:\n", df_1.isna().sum().to_string())
-    print()
 
-    # -- bars - :1-40 columns numeric + all categorical:
-    rows_less_40_and_categorical = [c for c in df_0.columns if df[c].unique().shape[0] <=20]
-    rows_less_40_and_categorical =  set(rows_less_40_and_categorical).union(df.select_dtypes(exclude=["number"]).columns)
-    rows_less_40_and_categorical = [c for c in rows_less_40_and_categorical if c != target ] # filter target
-    print("rows_less_40_and_categorical", rows_less_40_and_categorical)
-    # -- hist - :
-    other_c = [c for c in df_0.columns if c not in rows_less_40_and_categorical and c != target]
-    print("other_c", other_c)
-    # axes:
-    ax, axesl = get_grid_of_plots(len(rows_less_40_and_categorical) + len(other_c))
-    axesl_i = 0 # used cell
+    # print(df['MBKI_SCORING'].value_counts().to_string())
+    # exit()
 
-
-    min40_dfs = {}
-    # -- report per value
+    # -- unique < 40
+    min40_dfs = []
+    # -- hist
+    other_c = []
     for i, c in enumerate(df_0.columns):
+        if df[c].unique().shape[0] > 40:
+            other_c.append(c)
+            continue
         df_c_0 = df_0.groupby(c).size().reset_index(
-            name=str(t0))
-        df_c_1 = pd.DataFrame(df_1).groupby(c).size().reset_index(
-            name=str(t1))
-        FILTER = 5
-        df_c_0_f = df_c_0.sort_values(by=str(t0), ascending=False).head(FILTER)
-        df_c_1_f = df_c_1.sort_values(by=str(t1), ascending=False).head(FILTER)
-        if df_c_1_f.shape[0] < df_c_1.shape[0]:
-            print(f"we get only top {FILTER} records for target 1 and remove {df_c_1.shape[0] - df_c_1_f.shape[0]} records")
-        if df_c_0_f.shape[0] < df_c_0.shape[0]:
-            print(f"we get only top {FILTER} records for target 0 and remove {df_c_0.shape[0] - df_c_0_f.shape[0]} records")
-        df_c_1 = df_c_1_f
-        df_c_0 = df_c_0_f
-
+            name="0")
+        df_c_1 = df_1.groupby(c).size().reset_index(
+            name="1")
+        df_c_0['count'] = df_c_0["0"] / df_0.shape[0]
+        df_c_1['count'] = df_c_1["1"] / df_1.shape[0]
+        # print(df_c_0)  # значения и частота принятые # approved
+        # print(df_c_1)  # значения и частота отвергнутые
         df_c_0.set_index(c, verify_integrity=True, inplace=True)
         df_c_1.set_index(c, verify_integrity=True, inplace=True)
-        df_c = df_c_0.join(df_c_1, lsuffix='_0', rsuffix='_1', how='outer')
-        df_c.fillna(0, inplace=True)
-        df_c['1 of 1,0'] = round((df_c[str(t1)]/(df_c[str(t1)]+df_c[str(t0)])), 5)
-        min40_dfs[c] = df_c
-        # if df_c_1_f.iloc[0]['1'] <= 1 and df_c_0_f.iloc[0]['0'] <= 1:
-        #     continue
-        print(df_c.to_markdown())
-        print()
-    # -- bar plot - for categorical and binary
-    for c in rows_less_40_and_categorical:
-        df_c = min40_dfs[c]
-        # - rename title
+        df_c = df_c_0.join(df_c_1, lsuffix='_0', rsuffix='_1')
+        # df_c['0/1'] = df_c.apply(f, axis=1)
+        df_c['1/0'] = round(np.log(df_c['count_1']/df_c['count_0']), 5)
+        df_c.drop(columns=['count_0', 'count_1'], inplace=True)
+        min40_dfs.append(df_c)
+    # -- print
+    [print(df_c.to_markdown()) for df_c in min40_dfs]
+    # -- to CSV
+    # for df_c in min40_dfs:
+    #     with open('a.csv', 'a') as f:
+    #         df_c.to_csv(f)
+    #         f.write('\n')
+    # -- bar plot
+    for df_c in min40_dfs:
+        # rename title
         # if df_c.index.name in fields_dict:
         #     df_c.index.name = fields_dict[df_c.index.name]
-        # print(df_c)
-        df_c.drop(columns=['1 of 1,0'], inplace=True)
-        df_c.plot(ax=axesl[axesl_i], kind='bar', rot=20)
-        axesl[axesl_i].set_ylabel("count")
-        axesl_i+=1
-
-    # -- hist - numeric
+        # df_c.plot.bar(rot=10)
+        df_c.plot.bar(rot=10)
+        plt.ylabel("кол-во")
+        plt.tight_layout()
+        # plt.show()
+        plt.savefig('bar_norm_' + df_c.index.name)
+    # return
+    # -- unique > 40
+    print("columns unique > 40:", other_c)
     for c in other_c:
-        print("column:", c)
-        # f, ax = plt.subplots(figsize=(6, 4))
+        f, ax = plt.subplots(figsize=(6, 4))
         df_0_c = df_0[c]
         df_1_c = df_1[c]
+        # plt.hist(x=df_1, bins=10, color='red', alpha=0.6, normed=True)
         df_0_c = pd.to_numeric(df_0_c, errors='coerce')
         df_1_c = pd.to_numeric(df_1_c, errors='coerce')
-
-        # df_0_c.hist(ax=axesl[axesl_i], bins=20, color='red', alpha=0.6, density=True, label=str(t0))  # , stacked=True
-        # df_1_c.hist(ax=axesl[axesl_i], bins=20, color='green', alpha=0.6, density=True, label=str(t1))  # , stacked=True
-        df_0_c.hist(ax=axesl[axesl_i], bins=20, color='red', alpha=0.6, label=str(t0))  # ,, density=True , stacked=True
-        df_1_c.hist(ax=axesl[axesl_i], bins=20, color='green', alpha=0.6, label=str(t1))  # ,, density=True , stacked=True
-        axesl[axesl_i].set_ylabel("count")
-        axesl[axesl_i].legend()
-        axesl[axesl_i].set_title(c) #, fontsize=20)
-        axesl_i+=1
-
-    # print("wtf")
-    # if title:
-    #     ax.set_title(title, {'fontsize': 20})
-    if image_save:
-        plt.savefig(image_save)
-    else:
-        plt.show()
-    plt.close()
+        print(df_0_c.tail(3).to_string())
+        df_0_c.hist(ax=ax, bins=20, color='red', alpha=0.6, density=True, label='0')  # , stacked=True
+        df_1_c.hist(ax=ax, bins=20, color='green', alpha=0.6, density=True, label='1')  # , stacked=True
+        plt.legend()
+        plt.title(c, {'fontsize': 20})
+        # plt.show()
+        plt.savefig('hist_norm ' + c)
+        plt.close()
+    exit(0)
 
 
 def shap(p):
@@ -771,3 +701,4 @@ if __name__ == '__main__':
 
     # compare_dataframes(df1, df2, id_field='APP_SRC_REF')
     compare_different_dataframes(df1, df2)
+

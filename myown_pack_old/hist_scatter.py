@@ -2,16 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 # source https://gist.github.com/lkilcher/8722204056c117bc1ff0edc5b4b4a29e
 
-
-def scatter_hist_mat(x, y, ax, ax_histx, ax_histy):
+def scatter_hist_mat(x, y, ax, ax_histx, ax_histy, bins_x=30, bins_y=30):
     """ https://matplotlib.org/stable/gallery/lines_bars_and_markers/scatter_hist.html
     scatterplot with 2 gistograms
-    :param x: 
-    :param y: 
-    :param ax: 
-    :param ax_histx: 
-    :param ax_histy: 
-    :return: 
     """
     # no labels
     ax_histx.tick_params(axis="x", labelbottom=False)
@@ -20,17 +13,10 @@ def scatter_hist_mat(x, y, ax, ax_histx, ax_histy):
     # the scatter plot:
     ax.scatter(x, y)
 
-    # now determine nice limits by hand:
-    # binwidth = 0.25
-    # xymax = max(np.max(np.abs(x)), np.max(np.abs(y)))
-    # lim = (int(xymax/binwidth) + 1) * binwidth
-
-    # bins = np.arange(-lim, lim + binwidth, binwidth)
-
-    lims = [np.min(np.abs(x)), np.max(np.abs(x))]
-    bins1 = np.linspace(lims[0], lims[1], 100)
-    lims = [np.min(np.abs(y)), np.max(np.abs(y))]
-    bins2 = np.linspace(lims[0], lims[1], 100)
+    lims = [np.min(x), np.max(x)]
+    bins1 = np.linspace(lims[0], lims[1], bins_x)
+    lims = [np.min(y), np.max(y)]
+    bins2 = np.linspace(lims[0], lims[1], bins_y)
     ax_histx.hist(x, bins=bins1)
     ax_histy.hist(y, bins=bins2, orientation='horizontal')
 
